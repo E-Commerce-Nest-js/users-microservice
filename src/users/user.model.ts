@@ -20,10 +20,13 @@ export class UserModel extends TimeStamps {
     avatar_url?: string;
 
     @prop({ type: () => [UserAddress] })
-    address?: UserAddress[];
+    addresses?: UserAddress[];
 }
 
 export class UserAddress {
+    @prop()
+    index: string;
+
     @prop()
     city: string;
 
