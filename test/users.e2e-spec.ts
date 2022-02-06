@@ -11,6 +11,7 @@ import { MsgUserCreatedDto } from '../src/common/dto/msg-user-created.dto';
 import { UsersModule } from '../src/users/users.module';
 import { getMongoConfig } from '../src/configs/mongo.config';
 import { MsgUserDeletedDto } from '../src/common/dto/msg-user-deleted.dto';
+import { MsgUserUpdatedDto } from 'src/common/dto/msg-user-update.dto';
 
 describe('UsersController (e2e)', () => {
     let app: INestApplication;
@@ -64,7 +65,7 @@ describe('UsersController (e2e)', () => {
         rmqService.disconnect();
     });
 
-    describe('[FIRST TEST] "user.created" (RMQ)', () => {
+    describe('[ TEST SHOULD BE FIRST ] "user.created" (RMQ)', () => {
         test('(SUCCESS) [admin] should return user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserCreatedDto, UserModel>(
                 'user.created',
@@ -124,7 +125,58 @@ describe('UsersController (e2e)', () => {
         });
     });
 
-    describe('[LAST TEST] "user.deleted" (RMQ)', () => {
+    describe('"user.updated" (RMQ)', () => {
+        test('(SUCCESS) [user] should return user data object', async () => {
+            userData.email = 'newemail' + userData.email;
+
+            const user = await rmqService.triggerRoute<MsgUserUpdatedDto, UserModel>(
+                'user.updated',
+                {
+                    email: userData.email,
+                    userId: userData.id,
+                },
+            );
+
+            expect(user._id.toString()).toBe(userData.id);
+            expect(user.email).toBe(userData.email);
+        });
+
+        test('(VALIDATION) should return error message "userId must be a mongodb id; userId must be a string; userId should not be empty"', async () => {
+            try {
+                const user = await rmqService.triggerRoute<MsgUserUpdatedDto, UserModel>(
+                    'user.updated',
+                    {
+                        email: userData.email,
+                        userId: undefined,
+                    },
+                );
+            } catch (e) {
+                expect(e.message).toBe(
+                    'userId must be a mongodb id; userId must be a string; userId should not be empty',
+                );
+                expect(e.type).toBe('RMQ');
+            }
+        });
+
+        test('(VALIDATION) should return error message "email must be a string; email must be an email; email should not be empty"', async () => {
+            try {
+                const user = await rmqService.triggerRoute<MsgUserUpdatedDto, UserModel>(
+                    'user.updated',
+                    {
+                        email: undefined,
+                        userId: userData.id,
+                    },
+                );
+            } catch (e) {
+                expect(e.message).toBe(
+                    'email must be a string; email must be an email; email should not be empty',
+                );
+                expect(e.type).toBe('RMQ');
+            }
+        });
+    });
+
+    describe('[ TEST SHOULD BE LAST ] "user.deleted" (RMQ)', () => {
         test('(SUCCESS) [admin] should return deleted user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserDeletedDto, UserModel>(
                 'user.deleted',

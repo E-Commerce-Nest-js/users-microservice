@@ -3,6 +3,7 @@ import { ModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserModel } from './user.model';
 
 @Injectable()
@@ -15,6 +16,10 @@ export class UsersService {
             email: dto.email,
         });
         return newUser.save();
+    }
+
+    async updateUser(dto: UpdateUserDto): Promise<UserModel> {
+        return this.userModel.findByIdAndUpdate(dto._id, dto, { new: true }).exec();
     }
 
     async deleteUser(dto: DeleteUserDto): Promise<UserModel> {
