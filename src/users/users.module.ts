@@ -4,6 +4,8 @@ import { UsersController } from './users.controller';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { ConfigModule } from '@nestjs/config';
 import { UserModel } from './user.model';
+import { PassportModule } from '@nestjs/passport';
+import { JwtAccessStrategy } from '../common/strategies/jwt-access.strategy';
 
 @Module({
     imports: [
@@ -17,7 +19,7 @@ import { UserModel } from './user.model';
         ]),
         ConfigModule,
     ],
-    providers: [UsersService],
+    providers: [UsersService, JwtAccessStrategy],
     controllers: [UsersController],
 })
 export class UsersModule {}

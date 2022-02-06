@@ -25,4 +25,8 @@ export class UsersService {
     async deleteUser(dto: DeleteUserDto): Promise<UserModel> {
         return this.userModel.findByIdAndDelete(dto._id).exec();
     }
+
+    async getUserById(id: string): Promise<UserModel> {
+        return this.userModel.findById(id).exec();
+    }
 }

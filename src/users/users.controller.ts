@@ -1,10 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { RMQRoute, Validate } from 'nestjs-rmq';
 import { MsgUserUpdatedDto } from '../common/dto/msg-user-update.dto';
 import { MsgUserCreatedDto } from '../common/dto/msg-user-created.dto';
 import { UserModel } from './user.model';
 import { UsersService } from './users.service';
 import { MsgUserDeletedDto } from '../common/dto/msg-user-deleted.dto';
+import { RequestWithUser } from '../common/types/request-with-user.type';
+import { AccessTokenPayloadDto } from '../common/dto/at-payload.dto';
+import { JwtAccessAuthGuard } from '../common/guards/jwt-access.guard';
 
 @Controller('users')
 export class UsersController {
@@ -34,5 +37,12 @@ export class UsersController {
         return await this.usersService.deleteUser({
             _id: data.userId,
         });
+    }
+
+    @UseGuards(JwtAccessAuthGuard)
+    @Get('iam')
+    async getUser(@Req() req: RequestWithUser<AccessTokenPayloadDto>): Promise<UserModel> {
+        const user = await this.usersService.getUserById(req.user.id);
+        return user;
     }
 }

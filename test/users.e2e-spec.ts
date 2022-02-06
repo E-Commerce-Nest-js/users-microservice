@@ -180,6 +180,30 @@ describe('UsersController (e2e)', () => {
         });
     });
 
+    describe('/users/iam (GET)', () => {
+        test('(SUCCESS) [by User] should return 200 and user data object', async () => {
+            const response = await request(app.getHttpServer())
+                .get('/users/iam')
+                .set('Authorization', `Bearer ${userData.accessToken}`);
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(
+                expect.objectContaining({
+                    _id: expect.stringContaining(userData.dto._id),
+                    email: expect.stringContaining(userData.dto.email),
+                }),
+            );
+        });
+
+        test('(ERROR) should return 401 with invalid access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .get('/users/iam')
+                .set('Authorization', `Bearer INVALID.access.Token`);
+
+            expect(response.statusCode).toBe(401);
+        });
+    });
+
     describe('[ TEST SHOULD BE LAST ] "user.deleted" (RMQ)', () => {
         test('(SUCCESS) [admin] should return deleted user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserDeletedDto, UserModel>(
