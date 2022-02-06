@@ -4,9 +4,11 @@ import { RMQModule } from 'nestjs-rmq';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { getMongoConfig } from './configs/mongo.config';
 import { getRmqConfig } from './configs/rabbitmq.config';
+import { UsersModule } from './users/users.module';
 
 @Module({
     imports: [
+        UsersModule,
         ConfigModule.forRoot(),
         TypegooseModule.forRootAsync({
             imports: [ConfigModule],
