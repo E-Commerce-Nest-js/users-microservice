@@ -1,44 +1,12 @@
 import { Type } from 'class-transformer';
 import {
-    IsArray,
     IsDateString,
-    IsEmail,
-    IsMongoId,
     IsNotEmpty,
+    IsOptional,
     IsString,
     IsUrl,
     ValidateNested,
 } from 'class-validator';
-
-export class UpdateUserDto {
-    @IsNotEmpty()
-    @IsString()
-    @IsMongoId()
-    _id: string;
-
-    @IsNotEmpty()
-    @IsEmail()
-    email: string;
-
-    @IsString()
-    first_name?: string;
-
-    @IsString()
-    second_name?: string;
-
-    @IsDateString({ strict: true, strictSeparator: true })
-    @IsString()
-    birthday?: string;
-
-    @IsUrl()
-    @IsString()
-    avatar_url?: string;
-
-    @IsArray()
-    @ValidateNested()
-    @Type(() => UserAddressDto)
-    address?: UserAddressDto[];
-}
 
 export class UserAddressDto {
     @IsNotEmpty()
@@ -56,4 +24,35 @@ export class UserAddressDto {
     @IsNotEmpty()
     @IsString()
     apartment: string;
+}
+
+export class UpdateUserDto {
+    @IsOptional()
+    @IsString()
+    first_name?: string;
+
+    @IsOptional()
+    @IsString()
+    second_name?: string;
+
+    @IsOptional()
+    @IsDateString(
+        { strict: true, strictSeparator: true },
+        { message: 'birthday must be a valid YYYY-MM-DD date string' },
+    )
+    @IsString()
+    birthday?: string;
+
+    @IsOptional()
+    @IsUrl()
+    @IsString()
+    avatar_url?: string;
+
+    @IsOptional()
+    @ValidateNested({
+        message:
+            'nested property address must be object with fields: {index, city, street, apartment}',
+    })
+    @Type(() => UserAddressDto)
+    address?: UserAddressDto;
 }

@@ -1,5 +1,19 @@
-import { index, mongoose, prop } from '@typegoose/typegoose';
+import { prop } from '@typegoose/typegoose';
 import { Base, TimeStamps } from '@typegoose/typegoose/lib/defaultClasses';
+
+export class UserAddress {
+    @prop()
+    index: string;
+
+    @prop()
+    city: string;
+
+    @prop()
+    street: string;
+
+    @prop()
+    apartment: string;
+}
 
 export interface UserModel extends Base {}
 
@@ -19,20 +33,6 @@ export class UserModel extends TimeStamps {
     @prop()
     avatar_url?: string;
 
-    @prop({ type: () => [UserAddress] })
-    addresses?: UserAddress[];
-}
-
-export class UserAddress {
-    @prop()
-    index: string;
-
-    @prop()
-    city: string;
-
-    @prop()
-    street: string;
-
-    @prop()
-    apartment: string;
+    @prop({ type: () => UserAddress })
+    address?: UserAddress;
 }

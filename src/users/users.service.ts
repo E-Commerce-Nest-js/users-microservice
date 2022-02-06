@@ -18,8 +18,8 @@ export class UsersService {
         return newUser.save();
     }
 
-    async updateUser(dto: UpdateUserDto): Promise<UserModel> {
-        return this.userModel.findByIdAndUpdate(dto._id, dto, { new: true }).exec();
+    async updateUserEmailById(id: string, email: string): Promise<UserModel> {
+        return this.userModel.findByIdAndUpdate(id, { email }, { new: true }).exec();
     }
 
     async deleteUser(dto: DeleteUserDto): Promise<UserModel> {
@@ -28,5 +28,16 @@ export class UsersService {
 
     async getUserById(id: string): Promise<UserModel> {
         return this.userModel.findById(id).exec();
+    }
+
+    async updateUserById(id: string, dto: UpdateUserDto): Promise<UserModel> {
+        const userData: UpdateUserDto = {
+            address: dto.address,
+            avatar_url: dto.avatar_url,
+            birthday: dto.birthday,
+            first_name: dto.first_name,
+            second_name: dto.second_name,
+        };
+        return this.userModel.findByIdAndUpdate(id, userData, { new: true }).exec();
     }
 }

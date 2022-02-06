@@ -6,7 +6,7 @@ export type TestUserType = {
         second_name?: string;
         birthday?: string;
         avatar_url?: string;
-        addresses?: TestUserAddress[];
+        address?: TestUserAddress;
     };
     accessToken: string;
 };
