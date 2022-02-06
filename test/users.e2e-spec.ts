@@ -10,6 +10,7 @@ import { UserModel } from '../src/users/user.model';
 import { MsgUserCreatedDto } from '../src/common/dto/msg-user-created.dto';
 import { UsersModule } from '../src/users/users.module';
 import { getMongoConfig } from '../src/configs/mongo.config';
+import { MsgUserDeletedDto } from '../src/common/dto/msg-user-deleted.dto';
 
 describe('UsersController (e2e)', () => {
     let app: INestApplication;
@@ -63,7 +64,7 @@ describe('UsersController (e2e)', () => {
         rmqService.disconnect();
     });
 
-    describe('"user.created" (RMQ)', () => {
+    describe('[FIRST TEST] "user.created" (RMQ)', () => {
         test('(SUCCESS) [admin] should return user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserCreatedDto, UserModel>(
                 'user.created',
@@ -117,6 +118,34 @@ describe('UsersController (e2e)', () => {
             } catch (e) {
                 expect(e.message).toBe(
                     'email must be a string; email must be an email; email should not be empty',
+                );
+                expect(e.type).toBe('RMQ');
+            }
+        });
+    });
+
+    describe('[LAST TEST] "user.deleted" (RMQ)', () => {
+        test('(SUCCESS) [admin] should return deleted user data object', async () => {
+            const user = await rmqService.triggerRoute<MsgUserDeletedDto, UserModel>(
+                'user.deleted',
+                {
+                    userId: adminData.id,
+                },
+            );
+            expect(user._id.toString()).toBe(adminData.id);
+        });
+
+        test('(VALIDATION) should return error message "userId must be a mongodb id; userId must be a string; userId should not be empty"', async () => {
+            try {
+                const user = await rmqService.triggerRoute<MsgUserDeletedDto, UserModel>(
+                    'user.deleted',
+                    {
+                        userId: undefined,
+                    },
+                );
+            } catch (e) {
+                expect(e.message).toBe(
+                    'userId must be a mongodb id; userId must be a string; userId should not be empty',
                 );
                 expect(e.type).toBe('RMQ');
             }
