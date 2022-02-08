@@ -410,6 +410,169 @@ describe('UsersController (e2e)', () => {
         });
     });
 
+    describe('/users/:id (PATCH)', () => {
+        test('(SUCCESS) [by Admin] should return 200 and updated user data object [full update]', async () => {
+            const user: UpdateUserDto = {
+                first_name: 'Bob1',
+                second_name: 'Smith1',
+                birthday: '2020-12-23',
+                avatar_url: 'https://image.com/img12.jpg',
+                address: {
+                    apartment: '1231',
+                    city: 'Bali1',
+                    street: 'Pushkina1',
+                    index: '540033441',
+                },
+            };
+
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send(user);
+
+            userData.dto.first_name = response.body.first_name;
+            userData.dto.second_name = response.body.second_name;
+            userData.dto.birthday = response.body.birthday;
+            userData.dto.avatar_url = response.body.avatar_url;
+            userData.dto.address = response.body.address;
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(
+                expect.objectContaining({
+                    _id: expect.stringContaining(userData.dto._id),
+                    email: expect.stringContaining(userData.dto.email),
+                    first_name: expect.stringContaining(user.first_name),
+                    second_name: expect.stringContaining(user.second_name),
+                    birthday: expect.stringContaining(user.birthday),
+                    avatar_url: expect.stringContaining(user.avatar_url),
+                    address: expect.objectContaining({
+                        apartment: expect.any(String),
+                        city: expect.any(String),
+                        street: expect.any(String),
+                        index: expect.any(String),
+                    }),
+                }),
+            );
+        });
+
+        test('(SUCCESS) [by Admin] should return 200 and updated user data object [one filed update]', async () => {
+            const user: UpdateUserDto = {
+                first_name: 'Bobik123',
+            };
+
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send(user);
+
+            userData.dto.first_name = response.body.first_name;
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(
+                expect.objectContaining({
+                    _id: expect.stringContaining(userData.dto._id),
+                    email: expect.stringContaining(userData.dto.email),
+                    first_name: expect.stringContaining(user.first_name),
+                }),
+            );
+        });
+
+        test('(ERROR) should return 401 if send invalid access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer invalid.access.token`);
+
+            expect(response.statusCode).toBe(401);
+        });
+
+        test('(ERROR) [by User] should return 403 if send user access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${userData.accessToken}`);
+
+            expect(response.statusCode).toBe(403);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message ["first_name must be a string"]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({ first_name: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual(['first_name must be a string']);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message ["second_name must be a string"]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({ second_name: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual(['second_name must be a string']);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message ["birthday must be a string", birthday must be a valid YYYY-MM-DD date string"]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({ birthday: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual([
+                'birthday must be a string',
+                'birthday must be a valid YYYY-MM-DD date string',
+            ]);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message ["avatar_url must be a string", "avatar_url must be an URL address"]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({ avatar_url: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual([
+                'avatar_url must be a string',
+                'avatar_url must be an URL address',
+            ]);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message ["address.nested property address must be object with fields: {index, city, street, apartment}"]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({ address: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual([
+                'address.nested property address must be object with fields: {index, city, street, apartment}',
+            ]);
+        });
+
+        test('(VAILDATION) [by Admin] should return 400 with message [{index, city, street, apartment} must be a string and should not be empty]', async () => {
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`)
+                .send({
+                    address: {},
+                });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body.message).toEqual([
+                'address.index must be a string',
+                'address.index should not be empty',
+                'address.city must be a string',
+                'address.city should not be empty',
+                'address.street must be a string',
+                'address.street should not be empty',
+                'address.apartment must be a string',
+                'address.apartment should not be empty',
+            ]);
+        });
+    });
+
     describe('/users (GET)', () => {
         test('(SUCCESS) [by Admin] should return 200 and user data object', async () => {
             const response = await request(app.getHttpServer())

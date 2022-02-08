@@ -88,4 +88,17 @@ export class UserController {
         }
         return user;
     }
+
+    @UseGuards(RoleGuard([Role.Admin]))
+    @Patch(':id')
+    async updateUserById(
+        @Param('id', IdValidationPipe) id: string,
+        @Body() dto: UpdateUserDto,
+    ): Promise<UserModel> {
+        const user = await this.userService.updateUserById(id, dto);
+        if (!user) {
+            throw new NotFoundException();
+        }
+        return user;
+    }
 }
