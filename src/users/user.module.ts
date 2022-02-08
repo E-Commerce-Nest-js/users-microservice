@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { ConfigModule } from '@nestjs/config';
 import { UserModel } from './user.model';
-import { PassportModule } from '@nestjs/passport';
 import { JwtAccessStrategy } from '../common/strategies/jwt-access.strategy';
 
 @Module({
@@ -19,7 +18,7 @@ import { JwtAccessStrategy } from '../common/strategies/jwt-access.strategy';
         ]),
         ConfigModule,
     ],
-    providers: [UsersService, JwtAccessStrategy],
-    controllers: [UsersController],
+    providers: [UserService, JwtAccessStrategy],
+    controllers: [UserController],
 })
-export class UsersModule {}
+export class UserModule {}

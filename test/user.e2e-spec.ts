@@ -8,7 +8,7 @@ import { TestUserType } from './types/test-user.type';
 import { RMQModule, RMQService, RMQTestService } from 'nestjs-rmq';
 import { UserModel } from '../src/users/user.model';
 import { MsgUserCreatedDto } from '../src/common/dto/msg-user-created.dto';
-import { UsersModule } from '../src/users/users.module';
+import { UserModule } from '../src/users/user.module';
 import { getMongoConfig } from '../src/configs/mongo.config';
 import { MsgUserDeletedDto } from '../src/common/dto/msg-user-deleted.dto';
 import { MsgUserUpdatedDto } from 'src/common/dto/msg-user-update.dto';
@@ -26,7 +26,7 @@ describe('UsersController (e2e)', () => {
     beforeAll(async () => {
         const testAppModule: TestingModule = await Test.createTestingModule({
             imports: [
-                UsersModule,
+                UserModule,
                 ConfigModule.forRoot(),
                 TypegooseModule.forRootAsync({
                     imports: [ConfigModule],
