@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    NotFoundException,
+    Param,
+    Patch,
+    Req,
+    UseGuards,
+} from '@nestjs/common';
 import { RMQRoute, Validate } from 'nestjs-rmq';
 import { MsgUserUpdatedDto } from '../common/dto/msg-user-update.dto';
 import { MsgUserCreatedDto } from '../common/dto/msg-user-created.dto';
@@ -9,6 +18,9 @@ import { RequestWithUser } from '../common/types/request-with-user.type';
 import { AccessTokenPayloadDto } from '../common/dto/at-payload.dto';
 import { JwtAccessAuthGuard } from '../common/guards/jwt-access.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { IdValidationPipe } from '../common/pipes/id-validation.pipe';
+import { RoleGuard } from '../common/guards/role.guard';
+import { Role } from '../common/types/role.type';
 
 @Controller('users')
 export class UserController {
@@ -41,6 +53,9 @@ export class UserController {
     @Get('iam')
     async getOwnData(@Req() req: RequestWithUser<AccessTokenPayloadDto>): Promise<UserModel> {
         const user = await this.userService.getUserById(req.user.id);
+        if (!user) {
+            throw new NotFoundException();
+        }
         return user;
     }
 
@@ -51,6 +66,26 @@ export class UserController {
         @Body() dto: UpdateUserDto,
     ): Promise<UserModel> {
         const user = await this.userService.updateUserById(req.user.id, dto);
+        if (!user) {
+            throw new NotFoundException();
+        }
+        return user;
+    }
+
+    @UseGuards(RoleGuard([Role.Admin, Role.Manager]))
+    @Get('')
+    async getUsersList(): Promise<UserModel[]> {
+        const users = await this.userService.getUsers();
+        return users;
+    }
+
+    @UseGuards(RoleGuard([Role.Admin, Role.Manager]))
+    @Get(':id')
+    async getUserById(@Param('id', IdValidationPipe) id: string): Promise<UserModel> {
+        const user = await this.userService.getUserById(id);
+        if (!user) {
+            throw new NotFoundException();
+        }
         return user;
     }
 }

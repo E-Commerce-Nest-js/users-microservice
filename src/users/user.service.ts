@@ -30,6 +30,10 @@ export class UserService {
         return this.userModel.findById(id).exec();
     }
 
+    async getUsers(): Promise<UserModel[]> {
+        return this.userModel.find({}).exec();
+    }
+
     async updateUserById(id: string, dto: UpdateUserDto): Promise<UserModel> {
         const userData: UpdateUserDto = {
             address: dto.address,

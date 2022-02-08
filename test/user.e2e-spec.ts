@@ -70,7 +70,7 @@ describe('UsersController (e2e)', () => {
         rmqService.disconnect();
     });
 
-    describe('[ TEST SHOULD BE FIRST ] "user.created" (RMQ)', () => {
+    describe('[ TEST MUST BE FIRST ] "user.created" (RMQ)', () => {
         test('(SUCCESS) [admin] should return user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserCreatedDto, UserModel>(
                 'user.created',
@@ -196,7 +196,7 @@ describe('UsersController (e2e)', () => {
             );
         });
 
-        test('(ERROR) should return 401 with invalid access JWT', async () => {
+        test('(ERROR) should return 401 if send invalid access JWT', async () => {
             const response = await request(app.getHttpServer())
                 .get('/users/iam')
                 .set('Authorization', `Bearer INVALID.access.Token`);
@@ -272,7 +272,7 @@ describe('UsersController (e2e)', () => {
             );
         });
 
-        test('(ERROR) should return 401 with invalid access JWT', async () => {
+        test('(ERROR) should return 401 if send invalid access JWT', async () => {
             const response = await request(app.getHttpServer())
                 .patch('/users/iam')
                 .set('Authorization', `Bearer INVALID.access.Token`);
@@ -360,7 +360,91 @@ describe('UsersController (e2e)', () => {
         });
     });
 
-    describe('[ TEST SHOULD BE LAST ] "user.deleted" (RMQ)', () => {
+    describe('/users/:id (GET)', () => {
+        test('(SUCCESS) [by Admin] should return 200 and user data object', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`);
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(
+                expect.objectContaining({
+                    _id: expect.stringContaining(userData.dto._id),
+                    email: expect.stringContaining(userData.dto.email),
+                }),
+            );
+        });
+
+        test('(ERROR) should return 401 if send invalid access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer INVALID.access.Token`);
+
+            expect(response.statusCode).toBe(401);
+        });
+
+        test('(ERROR) [by User] should return 403 if send user access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users/${userData.dto._id}`)
+                .set('Authorization', `Bearer ${userData.accessToken}`);
+
+            expect(response.statusCode).toBe(403);
+        });
+
+        test('(ERROR) should return 404 if send spoof user id', async () => {
+            const invalidUserId = userData.dto._id.replace(/[abcdef]/g, 'a');
+            const response = await request(app.getHttpServer())
+                .get(`/users/${invalidUserId}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`);
+
+            expect(response.statusCode).toBe(404);
+        });
+
+        test('(VALIDATION) should return 400 with message [invalid user id]', async () => {
+            const invalidUserId = userData.dto._id.replace(/[abcdef]/g, 'p');
+            const response = await request(app.getHttpServer())
+                .get(`/users/${invalidUserId}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`);
+
+            expect(response.statusCode).toBe(400);
+        });
+    });
+
+    describe('/users (GET)', () => {
+        test('(SUCCESS) [by Admin] should return 200 and user data object', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`);
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        _id: expect.any(String),
+                        email: expect.any(String),
+                    }),
+                ]),
+            );
+        });
+
+        test('(ERROR) should return 401 if send invalid access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users`)
+                .set('Authorization', `Bearer INVALID.access.Token`);
+
+            expect(response.statusCode).toBe(401);
+        });
+
+        test('(ERROR) [by User] should return 403 if send user access JWT', async () => {
+            const response = await request(app.getHttpServer())
+                .get(`/users`)
+                .set('Authorization', `Bearer ${userData.accessToken}`);
+
+            expect(response.statusCode).toBe(403);
+        });
+    });
+
+    describe('[ TEST MUST BE LAST ] "user.deleted" (RMQ)', () => {
         test('(SUCCESS) [admin] should return deleted user data object', async () => {
             const user = await rmqService.triggerRoute<MsgUserDeletedDto, UserModel>(
                 'user.deleted',
