@@ -1,0 +1,52 @@
+version: '3'
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_LOGIN
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
+    ports:
+      - $MONGO_PORT:27017
+    volumes:
+      - ./docker-data/mongo-data:/data/db
+      
+  mongo-test:
+    image: mongo
+    container_name: mongo-test
+    restart: always
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_LOGIN
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
+    ports:
+      - $MONGO_PORT_TEST:27017
+
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: rabbitmq
+    restart: always
+    volumes:
+      - ./docker-data/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./docker-data/rabbitmq/logs/:/var/log/rabbitmq/
+    ports:
+      - 5672:5672
+      - 15672:15672
+    
+  users-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: users-service
+    restart: always
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongo
+      - rabbitmq
+
+volumes:
+    node_modules:
