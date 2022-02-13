@@ -22,6 +22,7 @@ import { IdValidationPipe } from '../common/pipes/id-validation.pipe';
 import { RoleGuard } from '../common/guards/role.guard';
 import { Role } from '../common/types/role.type';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -57,10 +58,10 @@ export class UserController {
         description: 'This can only be done by the logged.',
     })
     @ApiResponse({ status: 401, description: 'Invalid Access-Token' })
-    @ApiResponse({ status: 200, description: 'Return own data object', type: UserModel })
+    @ApiResponse({ status: 200, description: 'Return own data object', type: UserResponseDto })
     @UseGuards(JwtAccessAuthGuard)
     @Get('iam')
-    async getOwnData(@Req() req: RequestWithUser<AccessTokenPayloadDto>): Promise<UserModel> {
+    async getOwnData(@Req() req: RequestWithUser<AccessTokenPayloadDto>): Promise<UserResponseDto> {
         const user = await this.userService.getUserById(req.user.id);
         if (!user) {
             throw new NotFoundException();
@@ -75,13 +76,13 @@ export class UserController {
     })
     @ApiResponse({ status: 401, description: 'Invalid Access-Token' })
     @ApiResponse({ status: 400, description: 'Validation error' })
-    @ApiResponse({ status: 200, description: 'Return own data object', type: UserModel })
+    @ApiResponse({ status: 200, description: 'Return own data object', type: UserResponseDto })
     @UseGuards(JwtAccessAuthGuard)
     @Patch('iam')
     async updateOwnData(
         @Req() req: RequestWithUser<AccessTokenPayloadDto>,
         @Body() dto: UpdateUserDto,
-    ): Promise<UserModel> {
+    ): Promise<UserResponseDto> {
         const user = await this.userService.updateUserById(req.user.id, dto);
         if (!user) {
             throw new NotFoundException();
@@ -102,12 +103,12 @@ export class UserController {
     @ApiResponse({
         status: 200,
         description: 'Return array of users data object',
-        type: UserModel,
+        type: UserResponseDto,
         isArray: true,
     })
     @UseGuards(RoleGuard([Role.Admin, Role.Manager]))
     @Get('')
-    async getUsersList(): Promise<UserModel[]> {
+    async getUsersList(): Promise<UserResponseDto[]> {
         const users = await this.userService.getUsers();
         return users;
     }
@@ -124,10 +125,10 @@ export class UserController {
         description: 'Forbidden. Route for specific roles [admin, manager]',
     })
     @ApiResponse({ status: 404, description: 'Not Found' })
-    @ApiResponse({ status: 200, description: 'Return user data object', type: UserModel })
+    @ApiResponse({ status: 200, description: 'Return user data object', type: UserResponseDto })
     @UseGuards(RoleGuard([Role.Admin, Role.Manager]))
     @Get(':id')
-    async getUserById(@Param('id', IdValidationPipe) id: string): Promise<UserModel> {
+    async getUserById(@Param('id', IdValidationPipe) id: string): Promise<UserResponseDto> {
         const user = await this.userService.getUserById(id);
         if (!user) {
             throw new NotFoundException();
@@ -144,13 +145,17 @@ export class UserController {
     @ApiResponse({ status: 401, description: 'Invalid Access-Token' })
     @ApiResponse({ status: 403, description: 'Forbidden. Route for specific roles [admin]' })
     @ApiResponse({ status: 404, description: 'Not Found' })
-    @ApiResponse({ status: 200, description: 'Return updated user data object', type: UserModel })
+    @ApiResponse({
+        status: 200,
+        description: 'Return updated user data object',
+        type: UserResponseDto,
+    })
     @UseGuards(RoleGuard([Role.Admin]))
     @Patch(':id')
     async updateUserById(
         @Param('id', IdValidationPipe) id: string,
         @Body() dto: UpdateUserDto,
-    ): Promise<UserModel> {
+    ): Promise<UserResponseDto> {
         const user = await this.userService.updateUserById(id, dto);
         if (!user) {
             throw new NotFoundException();
