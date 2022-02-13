@@ -493,6 +493,16 @@ describe('UsersController (e2e)', () => {
             expect(response.statusCode).toBe(403);
         });
 
+        test('(ERROR) should return 404 if send spoof user id', async () => {
+            const invalidUserId = userData.dto._id.replace(/[abcdef]/g, 'a');
+
+            const response = await request(app.getHttpServer())
+                .patch(`/users/${invalidUserId}`)
+                .set('Authorization', `Bearer ${adminData.accessToken}`);
+
+            expect(response.statusCode).toBe(404);
+        });
+
         test('(VAILDATION) [by Admin] should return 400 with message ["first_name must be a string"]', async () => {
             const response = await request(app.getHttpServer())
                 .patch(`/users/${userData.dto._id}`)
